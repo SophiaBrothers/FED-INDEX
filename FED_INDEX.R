@@ -29,6 +29,14 @@ hist(fed.reserve$Day)
 hist(fed.reserve$Unemployment.Rate)
 hist(fed.reserve$Inflation.Rate)
 
+# Rename long Variables
+fed.reserve <- plyr::rename(fed.reserve, c("Effective.Federal.Funds.Rate"="EFFR",
+                                           "Federal.Funds.Target.Rate"="FFTR",
+                                           "Federal.Funds.Upper.Target" = "FFUT", 
+                                           "Federal.Funds.Lower.Target"="FFLT", 
+                                           "Real.GDP..Percent.Change." = "GDP",
+                                           "Unemployment.Rate" ="UR",
+                                           "Inflation.Rate"= "IR")) 
 
 # to check dataset for special characters
 grepl('[^[:punct:]]', fed.reserve)
@@ -39,6 +47,12 @@ sum(grepl('[^[:punct:]]', fed.reserve))
 grepl('[^[:alnum:]]', fed.reserve)
 # Can also use this. It will check for any value that is not a letter or a number.
 
+# TO SEE MISSING DATA IN THE DATAFRAME
+is.na(fed.reserve)
+
+# TO SEE MISSIG DATA IN A SPECIFIC COLUMN
+is.na(fed.reserve$FFTR)
+
 # find the amount of missing data and put them in a table format
 missing_values <- fed.reserve %>%
   map_df(function(i) sum(is.na(i))) %>%
@@ -47,18 +61,29 @@ missing_values <- fed.reserve %>%
 
 missing_values
 
-# these next steps create 3 new versions of the dataset
+
+# recode missing values with the mean
+fed.reserve$FFTR[is.na(fed.reserve$FFTR)] <- mean(fed.reserve$FFTR, na.rm = TRUE)
+fed.reserve$FFUT[is.na(fed.reserve$FFUT)] <- mean(fed.reserve$FFUT, na.rm = TRUE)
+fed.reserve$FFLT[is.na(fed.reserve$FFLT)] <- mean(fed.reserve$FFLT, na.rm = TRUE)
+fed.reserve$EFFR[is.na(fed.reserve$EFFR)] <- mean(fed.reserve$EFFR, na.rm = TRUE)
+fed.reserve$GDP[is.na(fed.reserve$GDP)] <- mean(fed.reserve$GDP, na.rm = TRUE)
+fed.reserve$UR[is.na(fed.reserve$UR)] <- mean(fed.reserve$UR, na.rm = TRUE)
+fed.reserve$IR[is.na(fed.reserve$IR)] <- mean(fed.reserve$IR, na.rm = TRUE)
+
+# these next steps create 2 new versions of the dataset
 
 # combine the dates. 
-FR <-unite(fed.reserve, Date, Year, Month, Day, sep="-")   # Date is the name of the new column
+FR.Date <-unite(fed.reserve, Date, Year, Month, Day, sep="-")   # Date is the name of the new column
+
 
 #Organize Date by Year
-ordered.years <- fed.reserve %>%
+ordered <- fed.reserve %>%
   group_by(Year) %>%
   summarise_all(funs(mean),na.rm=TRUE)
 
 #Eliminate Month and Day Variables from Yearly Data
-year.only <- years[, -c(2:3)]
+year.only <- ordered[, -c(2:3)]
 
 # CLEANING
 #fed.reserve$Year <- as.factor(fed.reserve$Year)
@@ -101,3 +126,12 @@ plot(density(outlier.scores))
 outliers <- order(outlier.scores, decreasing=T)[1:5]
 # who are outliers
 print(outliers)
+
+
+
+# VISUALIZE
+
+# 3D SCATTER PLOT
+install.packages("scatterplot3d")
+library(scatterplot3d)
+scatterplot3d(year.only$GDP, year.only$UR, xlab = "GDP", ylab = "Unemplyment Rate")
