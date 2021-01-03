@@ -10,7 +10,7 @@ fed.reserve = read.csv("C:/Users/snfra/OneDrive/Documents/RAW DATA/FedReserveInd
 
 # my observations
 # 1 seems to be the most frequent day
-# 'year', 'month', 'day' should be factors
+# 'year', 'month', 'day' could be factors independently or as a date
 
 head(fed.reserve)
 tail(fed.reserve)
@@ -62,28 +62,38 @@ missing_values <- fed.reserve %>%
 missing_values
 
 
-# recode missing values with the mean
-fed.reserve$FFTR[is.na(fed.reserve$FFTR)] <- mean(fed.reserve$FFTR, na.rm = TRUE)
-fed.reserve$FFUT[is.na(fed.reserve$FFUT)] <- mean(fed.reserve$FFUT, na.rm = TRUE)
-fed.reserve$FFLT[is.na(fed.reserve$FFLT)] <- mean(fed.reserve$FFLT, na.rm = TRUE)
-fed.reserve$EFFR[is.na(fed.reserve$EFFR)] <- mean(fed.reserve$EFFR, na.rm = TRUE)
-fed.reserve$GDP[is.na(fed.reserve$GDP)] <- mean(fed.reserve$GDP, na.rm = TRUE)
-fed.reserve$UR[is.na(fed.reserve$UR)] <- mean(fed.reserve$UR, na.rm = TRUE)
-fed.reserve$IR[is.na(fed.reserve$IR)] <- mean(fed.reserve$IR, na.rm = TRUE)
+# Too much missing data to just remove. perhaps drop variables 'FFUT' AND 'FFLT'
+# replace the others with the mean numbers?
 
-# these next steps create 2 new versions of the dataset
+# drop 'FFUT' AND 'FFLT'
+omitted <- c("FFUT", "FFLT")
+fed.reduced <- fed.reserve[,!(names(fed.reserve) %in% omitted)]
+names(fed.reduced)
+
+# recode missing values with the mean
+fed.reduced$FFTR[is.na(fed.reduced$FFTR)] <- mean(fed.reduced$FFTR, na.rm = TRUE)
+fed.reduced$EFFR[is.na(fed.reduced$EFFR)] <- mean(fed.reduced$EFFR, na.rm = TRUE)
+fed.reduced$GDP[is.na(fed.reduced$GDP)] <- mean(fed.reduced$GDP, na.rm = TRUE)
+fed.reduced$UR[is.na(fed.reduced$UR)] <- mean(fed.reduced$UR, na.rm = TRUE)
+fed.reduced$IR[is.na(fed.reduced$IR)] <- mean(fed.reduced$IR, na.rm = TRUE)
+
+# Now recheck if missing values
+is.na(fed.reduced)
+
+
+# these next steps create 3 new versions of the dataset
 
 # combine the dates. 
-FR.Date <-unite(fed.reserve, Date, Year, Month, Day, sep="-")   # Date is the name of the new column
+FR.Date <-unite(fed.reduced, Date, Year, Month, Day, sep="-")   # Date is the name of the new column
 
 
 #Organize Date by Year
-ordered <- fed.reserve %>%
+FR.Ordered <- fed.reduced %>%
   group_by(Year) %>%
   summarise_all(funs(mean),na.rm=TRUE)
 
-#Eliminate Month and Day Variables from Yearly Data
-year.only <- ordered[, -c(2:3)]
+#Eliminate Month and Day Variables from ordered Data
+FR.Year <- FR.Ordered[, -c(2:3)]
 
 # CLEANING
 #fed.reserve$Year <- as.factor(fed.reserve$Year)
@@ -103,13 +113,7 @@ GR <- fed.reserve %>%
 datatable(GR)
 
 
-# Too much missing data to just remove. perhaps drop variables 'Federal.Funds.Upper Target' 
-# and 'Federal.Funds.Lower.Target'
-# replace the others with the median numbers?
 
-targets <- c("Federal.Funds.Upper.Target", "Federal.Funds.Lower.Target")
-fed.reduced <- fed.reserve[,!(names(fed.reserve) %in% targets)]
-names(fed.reduced)
 
 
 
