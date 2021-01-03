@@ -52,4 +52,24 @@ fed.reserve$Year <- as.factor(fed.reserve$Year)
 fed.reserve$Month <- as.factor(fed.reserve$Month)
 fed.reserve$Day <- as.factor(fed.reserve$Day)
 
-# Too much missing data to just remove. perhaps replace with the median numbers?
+# Too much missing data to just remove. perhaps drop variables 'Federal.Funds.Upper Target' 
+# and 'Federal.Funds.Lower.Target'
+# replace the others with the median numbers?
+
+targets <- c("Federal.Funds.Upper.Target", "Federal.Funds.Lower.Target")
+fed.reduced <- fed.reserve[,!(names(fed.reserve) %in% targets)]
+names(fed.reduced)
+
+
+# Calculate Outlier Scores
+install.packages("DMwR")
+library(DMwR)
+# remove categorical columns
+reserve.num <- fed.reserve[,4:10]
+outlier.scores <- lofactor(reserve.num, k=5)
+plot(density(outlier.scores))
+
+# pick top 5 as outliers
+outliers <- order(outlier.scores, decreasing=T)[1:5]
+# who are outliers
+print(outliers)
