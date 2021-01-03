@@ -47,10 +47,36 @@ missing_values <- fed.reserve %>%
 
 missing_values
 
+# these next steps create 3 new versions of the dataset
+
+# combine the dates. 
+FR <-unite(fed.reserve, Date, Year, Month, Day, sep="-")   # Date is the name of the new column
+
+#Organize Date by Year
+ordered.years <- fed.reserve %>%
+  group_by(Year) %>%
+  summarise_all(funs(mean),na.rm=TRUE)
+
+#Eliminate Month and Day Variables from Yearly Data
+year.only <- years[, -c(2:3)]
+
 # CLEANING
-fed.reserve$Year <- as.factor(fed.reserve$Year)
-fed.reserve$Month <- as.factor(fed.reserve$Month)
-fed.reserve$Day <- as.factor(fed.reserve$Day)
+#fed.reserve$Year <- as.factor(fed.reserve$Year)
+#fed.reserve$Month <- as.factor(fed.reserve$Month)
+#fed.reserve$Day <- as.factor(fed.reserve$Day)
+
+
+# HOW TO SELECT TIME FRAMES
+# ex: the great recession December 2007 - June 2009
+install.packages("DT")
+library(DT)  # Used to create Datatables
+
+GR <- fed.reserve %>%
+  unite(Date, Year, Month, Day, sep="-") %>%
+  filter(Date>"2007-12-1")%>%
+  filter(Date<"2009-6-1")
+datatable(GR)
+
 
 # Too much missing data to just remove. perhaps drop variables 'Federal.Funds.Upper Target' 
 # and 'Federal.Funds.Lower.Target'
@@ -59,6 +85,8 @@ fed.reserve$Day <- as.factor(fed.reserve$Day)
 targets <- c("Federal.Funds.Upper.Target", "Federal.Funds.Lower.Target")
 fed.reduced <- fed.reserve[,!(names(fed.reserve) %in% targets)]
 names(fed.reduced)
+
+
 
 
 # Calculate Outlier Scores
