@@ -67,7 +67,7 @@ missing_values
 
 # drop 'FFUT' AND 'FFLT'
 omitted <- c("FFUT", "FFLT")
-fed.reduced <- fed.reserve[,!(names(fed.reserve) %in% omitted)]
+fed.reduced <- fed.reserve[ ,!(names(fed.reserve) %in% omitted)]
 names(fed.reduced)
 
 # recode missing values with the mean
@@ -92,6 +92,10 @@ FR.Ordered <- fed.reduced %>%
   group_by(Year) %>%
   summarise_all(funs(mean),na.rm=TRUE)
 
+# convert month and day back to integers
+FR.Ordered$Month <- as.integer(FR.Ordered$Month)
+FR.Ordered$Day <- as.integer(FR.Ordered$Day)
+
 #Eliminate Month and Day Variables from ordered Data
 FR.Year <- FR.Ordered[, -c(2:3)]
 
@@ -114,6 +118,45 @@ datatable(GR)
 
 
 
+# VISUALIZE
+
+# CORRELATION  
+# (>0.7 Indicates multicollinearity.)
+
+# PLOTTING WITH GGPAIRS----
+install.packages("GGally")
+library(GGally)
+ggpairs(FR.Year[,])   # all rows and all columns
+
+# strong correlaton between IR and EFFR
+
+# PLOTTING WITH CORRPLOT----
+library(corrplot)
+correlations <- cor(FR.Year[,])
+corrplot(correlations, method = "circle")
+
+install.packages("hrbrthemes")
+library(hrbrthemes)
+library(kableExtra)
+options(knitr.table.format = "html")
+library(streamgraph)
+library(viridis)
+library(DT)
+library(plotly)
+
+#just to check the months
+month.factor <- as.factor(FR.Ordered$Month)
+levels(month.factor)
+
+ggplot(FR.Ordered, aes(x=Year, y= GDP, group= as.factor(Month), color=as.factor(Month))) +
+  geom_line() +
+  scale_color_viridis(discrete = TRUE) +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=14)
+  ) +
+  ggtitle("A spaghetti chart of GDP") +
+  theme_ipsum()
 
 
 
@@ -121,9 +164,9 @@ datatable(GR)
 # Calculate Outlier Scores
 install.packages("DMwR")
 library(DMwR)
-# remove categorical columns
-reserve.num <- fed.reserve[,4:10]
-outlier.scores <- lofactor(reserve.num, k=5)
+# remove categorical columns if any
+# reserve.num <- fed.reserve[,4:10]  # would do this if I were using the original dataset
+outlier.scores <- lofactor(FR.Year, k=5)
 plot(density(outlier.scores))
 
 # pick top 5 as outliers
@@ -133,9 +176,8 @@ print(outliers)
 
 
 
-# VISUALIZE
 
 # 3D SCATTER PLOT
 install.packages("scatterplot3d")
 library(scatterplot3d)
-scatterplot3d(year.only$GDP, year.only$UR, xlab = "GDP", ylab = "Unemplyment Rate")
+scatterplot3d(FR.Year$GDP, FR.Year$UR, xlab = "GDP", ylab = "Unemplyment Rate")
