@@ -148,6 +148,7 @@ library(plotly)
 month.factor <- as.factor(FR.Ordered$Month)
 levels(month.factor)
 
+# LINE CHART
 ggplot(FR.Ordered, aes(x=Year, y= GDP, group= as.factor(Month), color=as.factor(Month))) +
   geom_line() +
   scale_color_viridis(discrete = TRUE) +
@@ -158,6 +159,42 @@ ggplot(FR.Ordered, aes(x=Year, y= GDP, group= as.factor(Month), color=as.factor(
   ggtitle("A spaghetti chart of GDP") +
   theme_ipsum()
 
+
+# BOXPLOT
+FR.Ordered %>%
+  ggplot( aes(x=IR, y=as.factor(Month), fill=as.factor(Month))) +
+  geom_boxplot() +
+  scale_fill_viridis(discrete = TRUE) +
+  theme_ipsum() +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("GDP Boxplot") +
+  xlab("")
+
+
+# Create a color palette
+install.packages("paletteer")
+library(paletteer)
+# All the palettes can be accessed from the 3 functions paletteer_c(), paletteer_d() and
+# paletteer_dynamic() using the by using the syntax packagename::palettename.
+# https://cran.r-project.org/web/packages/paletteer/readme/README.html
+
+nColor <- 20
+colors <- paletteer_c("viridis::inferno", n = nColor)
+
+# Transform the numeric variable in bins
+rank <- as.factor( as.numeric( cut(FR.Ordered$IR, nColor)))
+
+# Scatter plot with color gradient
+plot(
+  x = FR.Ordered$EFFR, 
+  y = FR.Ordered$IR,
+  bg = colors[ rank ],
+  cex = 3,
+  pch=21
+)
 
 
 
